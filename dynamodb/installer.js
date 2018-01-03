@@ -11,13 +11,14 @@ var tar = require('tar'),
 var download = function (downloadUrl, installPath, callback) {
     console.log("Started downloading Dynamodb-local. Process may take few minutes.");
     http.get(downloadUrl, function (response) {
+        var doProcess = function (response) {
             var len = parseInt(response.headers['content-length'], 10),
-            bar = new ProgressBar('Downloading dynamodb-local [:bar] :percent :etas', {
-                complete: '=',
-                incomplete: ' ',
-                width: 40,
-                total: len
-            });
+                bar = new ProgressBar('Downloading dynamodb-local [:bar] :percent :etas', {
+                    complete: '=',
+                    incomplete: ' ',
+                    width: 40,
+                    total: len
+                });
 
             if (200 != response.statusCode) {
                 throw new Error('Error getting DynamoDb local latest tar.gz location ' + response.headers.location + ': ' + response.statusCode);
@@ -37,7 +38,16 @@ var download = function (downloadUrl, installPath, callback) {
                 .on('error', function (err) {
                     throw new Error("Error in downloading Dynamodb local " + err);
                 });
+        }
+
+        if (response.headers.location.length > 0) {
+            http.get(response.headers.location, function (redirectResponse) {
+                doProcess(redirectResponse);
             })
+        } else {
+            doProcess(response);
+        }
+    })
         .on('error', function (err) {
             throw new Error("Error in downloading Dynamodb local " + err);
         });
