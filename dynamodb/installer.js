@@ -40,7 +40,7 @@ var download = function (downloadUrl, installPath, callback) {
                 });
         }
 
-        if (response.headers.location.length > 0) {
+        if (response.headers.location !== undefined && response.headers.location.length > 0) {
             http.get(response.headers.location, function (redirectResponse) {
                 doProcess(redirectResponse);
             })
